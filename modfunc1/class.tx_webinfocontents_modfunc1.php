@@ -76,11 +76,19 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		}
 		$theOutput .= $this->pObj->doc->spacer(5);
 		$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
+
+		// Dispatch display to relevant method
+		if ($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'search') {
+
+		}
+		else {
+			$theOutput .= $this->displayGlobalOverview();
+		}
 		return $theOutput;
 	}
 
 	/**
-	 * This method assemble the global overview display
+	 * This method assembles the global overview display
 	 *
 	 * @return	string	HTML to display
 	 */
@@ -103,10 +111,15 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		);
 
 			// Create the tree from starting point:
-		if ($depth>0)	{
+		if ($depth > 0) {
 			$tree->getTree($treeStartingPoint, $depth, '');
 		}
-//		t3lib_div::debug($tree);
+			// Parse the tree to get all the page id's
+		$uidList = array();
+		foreach ($tree->tree as $data) {
+			$uidList[] = $data['row']['uid'];
+		}
+//t3lib_div::debug($uidList);
 
 	}
 }
