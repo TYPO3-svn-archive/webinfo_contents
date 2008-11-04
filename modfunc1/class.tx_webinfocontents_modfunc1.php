@@ -68,22 +68,30 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 	 *
 	 * @return	string	HTML to display
 	 */
-	public function main()	{
-		// Assemble the menu of options
-		$sectionContent = t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
-		if (empty($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display']) || $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'overview') {
-			$sectionContent .= $GLOBALS['LANG']->getLL('depth').': '.t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
-		}
-		$theOutput .= $this->pObj->doc->spacer(5);
-		$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
-		$theOutput .= $this->pObj->doc->spacer(10);
-
-		// Dispatch display to relevant method
-		if ($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'search') {
-
+	public function main() {
+			// If no page is selected, display general information message
+		if (empty($this->pObj->id)) {
+			$sectionContent = $GLOBALS['LANG']->getLL('choose_page');
+			$theOutput .= $this->pObj->doc->spacer(5);
+			$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
 		}
 		else {
-			$theOutput .= $this->displayGlobalOverview();
+			// Assemble the menu of options
+			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').': '.t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
+			if (empty($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display']) || $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'overview') {
+				$sectionContent .= $GLOBALS['LANG']->getLL('depth').': '.t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
+			}
+			$theOutput .= $this->pObj->doc->spacer(5);
+			$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
+			$theOutput .= $this->pObj->doc->spacer(10);
+
+			// Dispatch display to relevant method
+			if ($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'search') {
+
+			}
+			else {
+				$theOutput .= $this->displayGlobalOverview();
+			}
 		}
 		return $theOutput;
 	}
@@ -131,7 +139,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 				$type = 'standard';
 				$subtype = $row['CType'];
 			}
-			$contentElements[$row['pid']][$type][] = array('subtype' => $subtype, 'count' => $row['total']);
+			$contentElements[$row['pid']][$type][$subtype] = $row['total'];
 		}
 //t3lib_div::debug($contentElements);
 
@@ -139,6 +147,13 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			// This is taken from the TCA of tt_content, minus the dummy first element
 		$allContentElements = $GLOBALS['TCA']['tt_content']['columns']['CType']['config']['items'];
 		array_shift($allContentElements);
+			// Filter out the "list_type" type as plug-ins are displayed separately
+		foreach ($allContentElements as $index => $item) {
+			if ($item[1] == 'list') {
+				unset($allContentElements[$index]);
+				break;
+			}
+		}
 
 			// Get a list of all plug-in types
 			// This is taken from the TCA of tt_content, minus the dummy first element
@@ -150,22 +165,31 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			'table' => array ('<table border="0" cellspacing="1" cellpadding="2" style="width:auto;">', '</table>'),
 			'0' => array (
 				'tr' => array('<tr class="bgColor2" valign="top">', '</tr>'),
+				'0' => array('<td>', '</td>'),
+				'1' => array('<td colspan="'.count($allContentElements).'" align="center">', '</td>'),
+				'2' => array('<td colspan="'.count($allPlugins).'" align="center">', '</td>'),
+			),
+			'1' => array (
+				'tr' => array('<tr class="bgColor2" valign="top">', '</tr>'),
 			),
 			'defRowOdd' => array (
 				'tr' => array('<tr class="bgColor-10" valign="top">', '</tr>'),
-				'1' => array('<td class="bgColor4-20">', '</td>'),
+				'0' => array('<td nowrap="nowrap">', '</td>'),
 				'defCol' => array('<td>', '</td>'),
 			),
 			'defRowEven' => array (
 				'tr' => array('<tr class="bgColor-20" valign="top">', '</tr>'),
-				'1' => array('<td class="bgColor4-20">', '</td>'),
+				'0' => array('<td nowrap="nowrap">', '</td>'),
 				'defCol' => array('<td>', '</td>'),
 			)
 		);
 		$tableRows = array();
 		$rowCounter = 0;
-			// Define the table header row
-		$tableRows[$rowCounter] = array('Pages');
+			// Define the first table header row
+		$tableRows[$rowCounter] = array($GLOBALS['LANG']->getLL('pages'), $GLOBALS['LANG']->getLL('content_elements'), $GLOBALS['LANG']->getLL('plugins'));
+		$rowCounter++;
+			// Define the second table header row
+		$tableRows[$rowCounter] = array('&nbsp;');
 		foreach ($allContentElements as $item) {
 			$tableRows[$rowCounter][] = $GLOBALS['LANG']->sL($item[0]);
 		}
@@ -173,11 +197,31 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			$tableRows[$rowCounter][] = $GLOBALS['LANG']->sL($item[0]);
 		}
 		$rowCounter++;
+
 			// Render the page tree with the content elements for each page
 		foreach ($tree->tree as $row) {
+			$pid = $row['row']['uid'];
 			$page = $row['HTML'] . t3lib_BEfunc::getRecordTitle('pages', $row['row'], TRUE);
 			$tableRows[$rowCounter] = array();
 			$tableRows[$rowCounter][] = $page;
+			foreach ($allContentElements as $item) {
+				if (empty($contentElements[$pid]['standard'][$item[1]])) {
+					$cell = '&nbsp;';
+				}
+				else {
+					$cell = $contentElements[$pid]['standard'][$item[1]];
+				}
+				$tableRows[$rowCounter][] = $cell;
+			}
+			foreach ($allPlugins as $item) {
+				if (empty($contentElements[$pid]['plugin'][$item[1]])) {
+					$cell = '&nbsp;';
+				}
+				else {
+					$cell = $contentElements[$pid]['plugin'][$item[1]];
+				}
+				$tableRows[$rowCounter][] = $cell;
+			}
 			$rowCounter++;
 		}
 		$table = $this->pObj->doc->table($tableRows, $tableLayout);
@@ -185,7 +229,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 	}
 
 	/**
-	 * This method gets the page tree to display depening current page and chosen depth
+	 * This method gets the page tree to display depending current page and chosen depth
 	 *
 	 * @return	object	Instance of t3lib_pageTree
 	 */
