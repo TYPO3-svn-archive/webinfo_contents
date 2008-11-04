@@ -58,6 +58,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 				3	=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.depth_3'),
 				250	=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.depth_infi'),
 			),
+			'tx_webinfocontents_modfunc1_search' => 0
 		);
 		return $menu;
 	}
@@ -78,17 +79,15 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		}
 		else {
 			// Assemble the menu of options
-			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').': '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
-			if (empty($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display']) || $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'overview') {
-				$sectionContent .= $GLOBALS['LANG']->getLL('depth').': '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
-			}
+			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').' '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
+			$sectionContent .= $GLOBALS['LANG']->getLL('depth').' '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
 			$theOutput .= $this->pObj->doc->spacer(5);
 			$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
 			$theOutput .= $this->pObj->doc->spacer(10);
 
 			// Dispatch display to relevant method
 			if ($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'search') {
-
+				$theOutput .= $this->displaySearch();
 			}
 			else {
 				$theOutput .= $this->displayGlobalOverview();
@@ -107,13 +106,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		$tree = $this->getPageTree();
 
 			// Parse the tree to get all the page id's
-		$uidList = array();
-		foreach ($tree->tree as $data) {
-			if (!empty($data['row']['uid'])) {
-				$uidList[] = $data['row']['uid'];
-			}
-		}
-//t3lib_div::debug($uidList);
+		$uidList = $this->getPageIdsFromTree($tree);
 
 			// Get all the non-deleted content elements in those pages
 			// This query does not take into account workspaces nor language overlays
@@ -145,21 +138,10 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 //t3lib_div::debug($contentElements);
 
 			// Get a list of all content element types
-			// This is taken from the TCA of tt_content, minus the dummy first element
-		$allContentElements = $GLOBALS['TCA']['tt_content']['columns']['CType']['config']['items'];
-		array_shift($allContentElements);
-			// Filter out the "list_type" type as plug-ins are displayed separately
-		foreach ($allContentElements as $index => $item) {
-			if ($item[1] == 'list') {
-				unset($allContentElements[$index]);
-				break;
-			}
-		}
+		$allContentElements = $this->getAllContentElementTypes();
 
 			// Get a list of all plug-in types
-			// This is taken from the TCA of tt_content, minus the dummy first element
-		$allPlugins = $GLOBALS['TCA']['tt_content']['columns']['list_type']['config']['items'];
-		array_shift($allPlugins);
+		$allPlugins = $this->getAllPluginTypes();
 
 			// Initialise the table layout
 		$tableLayout = array (
@@ -225,8 +207,86 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			}
 			$rowCounter++;
 		}
-		$table = $this->pObj->doc->table($tableRows, $tableLayout);
-		return $table;
+		$output = $this->pObj->doc->table($tableRows, $tableLayout);
+		return $output;
+	}
+
+	/**
+	 * This method displays the search page
+	 * 
+	 * @return	string	HTML to display
+	 */
+	protected function displaySearch() {
+		// Assemble content element or plugin selection menu
+		$output = '<p>'.$GLOBALS['LANG']->getLL('choose_content_or_plugin').'</p>';
+		$output .= '<select name="SET[tx_webinfocontents_modfunc1_search]" onchange="jumpToUrl(\'index.php?id='.$this->pObj->id.'&SET[tx_webinfocontents_modfunc1_search]=\'+this.options[this.selectedIndex].value,this);">'."\n";
+		$output .= '<optgroup label="'.$GLOBALS['LANG']->getLL('content_elements').'">'."\n";
+		$allContentElements = $this->getAllContentElementTypes();
+		foreach ($allContentElements as $item) {
+			if (isset($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) && $item[1] == $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) {
+				$selected = ' selected="selected"';
+			}
+			else {
+				$selected = '';
+			}
+			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]).'</option>';
+		}
+		$output .= '</optgroup>'."\n";
+		$output .= '<optgroup label="'.$GLOBALS['LANG']->getLL('plugins').'">'."\n";
+		$allPlugins = $this->getAllPluginTypes();
+		foreach ($allPlugins as $item) {
+			if (isset($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) && $item[1] == $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) {
+				$selected = ' selected="selected"';
+			}
+			else {
+				$selected = '';
+			}
+			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]).'</option>';
+		}
+		$output .= '</optgroup>'."\n";
+		$output .= '</select>';
+
+			// Search for the appropriate type if the search field is not empty
+		if (!empty($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search'])) {
+				// Get the page tree
+			$tree = $this->getPageTree();
+
+				// Parse the tree to get all the page id's
+			$uidList = $this->getPageIdsFromTree($tree);
+
+				// Search for the selected content element or plugin type
+			$where = "(CType = '".$this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']."' OR list_type = '".$this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']."')";
+
+				// Restrict query to selected pages
+			if (count($uidList) > 0) {
+				$where .= ' AND pid IN ('.implode(',', $uidList).')';
+			}
+			$deleteClause = t3lib_BEfunc::deleteClause('tt_content');
+			if (!empty($deleteClause)) {
+				$where .= $deleteClause;
+			}
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT pid', 'tt_content', $where);
+				// If the query returned no results, issue information
+			if ($GLOBALS['TYPO3_DB']->sql_num_rows($res) == 0) {
+				$searchResults = '<p>'.$GLOBALS['LANG']->getLL('search_no_results').'</p>';
+			}
+				// If some results were returned, display list of pages found
+			else {
+				$searchResults = '<p>'.$GLOBALS['LANG']->getLL('search_results_intro').'</p>';
+				$searchResults .= $this->pObj->doc->spacer(5);
+				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+					$pageRecord = t3lib_BEfunc::getRecord('pages', $row['pid']);
+					$pageDisplay = '<a href="#" onclick="'.htmlspecialchars('top.loadEditId('.$row['pid'].')').'">';
+					$pageDisplay .= t3lib_iconWorks::getIconImage('pages', $pageRecord, $GLOBALS['BACK_PATH'], 'align="top"');
+					$pageDisplay .= t3lib_BEfunc::getRecordTitle('pages', $pageRecord, TRUE);;
+					$pageDisplay .= '</a>';
+					$searchResults .= '<p>'.$pageDisplay.'</p>';
+				}
+				$searchResults .= $this->pObj->doc->spacer(10);
+			}
+			$output .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('search_results'), $searchResults, 0, 1);
+		}
+		return $output;
 	}
 
 	/**
@@ -257,6 +317,53 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			$tree->getTree($treeStartingPoint, $depth, '');
 		}
 		return $tree;
+	}
+
+	/**
+	 * This method reads the TCA of the tt_content table to get the list of all content elements types
+	 *
+	 * @return	array	Array of all content element types as per TCA
+	 */
+	protected function getAllContentElementTypes() {
+			// The base list is taken from the TCA of tt_content
+		$allContentElements = $GLOBALS['TCA']['tt_content']['columns']['CType']['config']['items'];
+			// Remove the dummy first element
+		array_shift($allContentElements);
+			// Filter out the "list_type" type as plug-ins are displayed separately
+		foreach ($allContentElements as $index => $item) {
+			if ($item[1] == 'list') {
+				unset($allContentElements[$index]);
+				break;
+			}
+		}
+		return $allContentElements;
+	}
+
+	/**
+	 * This method reads the TCA of the tt_content table to get the list of all plugin types
+	 * 
+	 * @return	array	Array of all plugin types as per TCA
+	 */
+	protected function getAllPluginTypes() {
+		$allPlugins = $GLOBALS['TCA']['tt_content']['columns']['list_type']['config']['items'];
+		array_shift($allPlugins);
+		return $allPlugins;
+	}
+
+	/**
+	 * This method parses a tree object and returns all the page uid's found within it
+	 *
+	 * @param	object	$tree: an instance of the t3lib_pageTree class
+	 * @return	array	A list of page uid's
+	 */
+	protected function getPageIdsFromTree($tree) {
+		$uidList = array();
+		foreach ($tree->tree as $data) {
+			if (!empty($data['row']['uid'])) {
+				$uidList[] = $data['row']['uid'];
+			}
+		}
+		return $uidList;
 	}
 }
 
