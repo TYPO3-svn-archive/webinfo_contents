@@ -9,6 +9,8 @@
 			<label index="title">Content elements overview</label>
 			<label index="choose_page">Choose a page in the page tree to see the overview of its content elements.</label>
 			<label index="choose_view">Choose a view</label>
+			<label index="overview">Global overview</label>
+			<label index="search">Search</label>
 			<label index="depth">Depth</label>
 			<label index="pages">Pages</label>
 			<label index="content_elements">Content elements</label>

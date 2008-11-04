@@ -48,8 +48,8 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 	public function modMenu() {
 		$menu = array(
 			'tx_webinfocontents_modfunc1_display' => array(
-				'overview' => 'Global overview',
-				'search' => 'Search'
+				'overview' => $GLOBALS['LANG']->getLL('overview'),
+				'search' => $GLOBALS['LANG']->getLL('search')
 			),
 			'tx_webinfocontents_modfunc1_depth' => array(
 				0	=> $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xml:labels.depth_0'),
@@ -69,6 +69,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 	 * @return	string	HTML to display
 	 */
 	public function main() {
+//t3lib_div::debug($this->pObj);
 			// If no page is selected, display general information message
 		if (empty($this->pObj->id)) {
 			$sectionContent = $GLOBALS['LANG']->getLL('choose_page');
@@ -77,9 +78,9 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		}
 		else {
 			// Assemble the menu of options
-			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').': '.t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
+			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').': '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
 			if (empty($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display']) || $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'] == 'overview') {
-				$sectionContent .= $GLOBALS['LANG']->getLL('depth').': '.t3lib_BEfunc::getFuncMenu($this->wizard->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
+				$sectionContent .= $GLOBALS['LANG']->getLL('depth').': '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
 			}
 			$theOutput .= $this->pObj->doc->spacer(5);
 			$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
