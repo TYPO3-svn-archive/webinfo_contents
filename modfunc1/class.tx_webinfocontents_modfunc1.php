@@ -241,7 +241,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			else {
 				$selected = '';
 			}
-			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]).'</option>';
+			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]) . ' (' . $item[1] .')</option>';
 		}
 		$output .= '</optgroup>'."\n";
 		$output .= '</select>';
@@ -276,9 +276,9 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 				$searchResults .= $this->pObj->doc->spacer(5);
 				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 					$pageRecord = t3lib_BEfunc::getRecord('pages', $row['pid']);
-					$pageDisplay = '<a href="#" onclick="'.htmlspecialchars('top.loadEditId('.$row['pid'].')').'">';
+					$pageDisplay = '<a href="#" onclick="' . htmlspecialchars('top.loadEditId('.$row['pid'].')').'">';
 					$pageDisplay .= t3lib_iconWorks::getIconImage('pages', $pageRecord, $GLOBALS['BACK_PATH'], 'align="top"');
-					$pageDisplay .= t3lib_BEfunc::getRecordTitle('pages', $pageRecord, TRUE);;
+					$pageDisplay .= '[' . $row['pid'] . '] ' . t3lib_BEfunc::getRecordTitle('pages', $pageRecord, TRUE);;
 					$pageDisplay .= '</a>';
 					$searchResults .= '<p>'.$pageDisplay.'</p>';
 				}
