@@ -20,23 +20,18 @@
 *  GNU General Public License for more details.
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
-*
-* $Id$
 ***************************************************************/
-/**
- * [CLASS/FUNCTION INDEX of SCRIPT]
- *
- * Hint: use extdeveval to insert/update function index above.
- */
 
-require_once(PATH_t3lib.'class.t3lib_extobjbase.php');
+require_once(PATH_t3lib . 'class.t3lib_extobjbase.php');
 
 /**
  * Module extension (addition to function menu) 'Content elements overview' for the 'webinfo_contents' extension.
  *
- * @author	Francois Suter (Cobweb) <typo3@cobweb.ch>
- * @package	TYPO3
+ * @author		Francois Suter (Cobweb) <typo3@cobweb.ch>
+ * @package		TYPO3
  * @subpackage	tx_webinfocontents
+ *
+ * $Id$
  */
 class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 
@@ -79,8 +74,8 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 		}
 		else {
 			// Assemble the menu of options
-			$sectionContent = $GLOBALS['LANG']->getLL('choose_view').' '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
-			$sectionContent .= $GLOBALS['LANG']->getLL('depth').' '.t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
+			$sectionContent = $GLOBALS['LANG']->getLL('choose_view') . ' ' . t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_display]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_display'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_display']);
+			$sectionContent .= $GLOBALS['LANG']->getLL('depth') . ' ' . t3lib_BEfunc::getFuncMenu($this->pObj->id, 'SET[tx_webinfocontents_modfunc1_depth]', $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_depth'], $this->pObj->MOD_MENU['tx_webinfocontents_modfunc1_depth']);
 			$theOutput .= $this->pObj->doc->spacer(5);
 			$theOutput .= $this->pObj->doc->section($GLOBALS['LANG']->getLL('title'), $sectionContent, 0, 1);
 			$theOutput .= $this->pObj->doc->spacer(10);
@@ -111,7 +106,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			// Get all the non-deleted content elements in those pages
 			// This query does not take into account workspaces nor language overlays
 		if (count($uidList) > 0) {
-			$where = 'pid IN ('.implode(',', $uidList).')';
+			$where = 'pid IN (' . implode(',', $uidList) . ')';
 		}
 		$deleteClause = t3lib_BEfunc::deleteClause('tt_content');
 		if (!empty($deleteClause)) {
@@ -149,8 +144,8 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			'0' => array (
 				'tr' => array('<tr class="bgColor2" valign="top">', '</tr>'),
 				'0' => array('<td>', '</td>'),
-				'1' => array('<td colspan="'.count($allContentElements).'" align="center">', '</td>'),
-				'2' => array('<td colspan="'.count($allPlugins).'" align="center">', '</td>'),
+				'1' => array('<td colspan="' . count($allContentElements) . '" align="center">', '</td>'),
+				'2' => array('<td colspan="' . count($allPlugins) . '" align="center">', '</td>'),
 			),
 			'1' => array (
 				'tr' => array('<tr class="bgColor2" valign="top">', '</tr>'),
@@ -218,9 +213,9 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 	 */
 	protected function displaySearch() {
 		// Assemble content element or plugin selection menu
-		$output = '<p>'.$GLOBALS['LANG']->getLL('choose_content_or_plugin').'</p>';
-		$output .= '<select name="SET[tx_webinfocontents_modfunc1_search]" onchange="jumpToUrl(\'index.php?id='.$this->pObj->id.'&SET[tx_webinfocontents_modfunc1_search]=\'+this.options[this.selectedIndex].value,this);">'."\n";
-		$output .= '<optgroup label="'.$GLOBALS['LANG']->getLL('content_elements').'">'."\n";
+		$output = '<p>' . $GLOBALS['LANG']->getLL('choose_content_or_plugin') . '</p>';
+		$output .= '<select name="SET[tx_webinfocontents_modfunc1_search]" onchange="jumpToUrl(\'index.php?id=' . $this->pObj->id . '&SET[tx_webinfocontents_modfunc1_search]=\'+this.options[this.selectedIndex].value,this);">' . "\n";
+		$output .= '<optgroup label="' . $GLOBALS['LANG']->getLL('content_elements') . '">' . "\n";
 		$allContentElements = $this->getAllContentElementTypes();
 		foreach ($allContentElements as $item) {
 			if (isset($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) && $item[1] == $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) {
@@ -229,10 +224,10 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			else {
 				$selected = '';
 			}
-			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]).'</option>';
+			$output .= '<option value="' . $item[1] . '"' . $selected . '>' . $GLOBALS['LANG']->sL($item[0]) . '</option>';
 		}
-		$output .= '</optgroup>'."\n";
-		$output .= '<optgroup label="'.$GLOBALS['LANG']->getLL('plugins').'">'."\n";
+		$output .= '</optgroup>' . "\n";
+		$output .= '<optgroup label="' . $GLOBALS['LANG']->getLL('plugins') . '">' . "\n";
 		$allPlugins = $this->getAllPluginTypes();
 		foreach ($allPlugins as $item) {
 			if (isset($this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) && $item[1] == $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']) {
@@ -241,9 +236,9 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			else {
 				$selected = '';
 			}
-			$output .= '<option value="'.$item[1].'"'.$selected.'>'.$GLOBALS['LANG']->sL($item[0]) . ' (' . $item[1] .')</option>';
+			$output .= '<option value="' . $item[1] . '"' . $selected . '>' . $GLOBALS['LANG']->sL($item[0]) . ' (' . $item[1] .')</option>';
 		}
-		$output .= '</optgroup>'."\n";
+		$output .= '</optgroup>' . "\n";
 		$output .= '</select>';
 
 			// Search for the appropriate type if the search field is not empty
@@ -255,11 +250,11 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			$uidList = $this->getPageIdsFromTree($tree);
 
 				// Search for the selected content element or plugin type
-			$where = "(CType = '".$this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']."' OR list_type = '".$this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search']."')";
+			$where = "(CType = '" . $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search'] . "' OR list_type = '" . $this->pObj->MOD_SETTINGS['tx_webinfocontents_modfunc1_search'] . "')";
 
 				// Restrict query to selected pages
 			if (count($uidList) > 0) {
-				$where .= ' AND pid IN ('.implode(',', $uidList).')';
+				$where .= ' AND pid IN (' . implode(',', $uidList) . ')';
 			}
 			$deleteClause = t3lib_BEfunc::deleteClause('tt_content');
 			if (!empty($deleteClause)) {
@@ -268,19 +263,19 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT pid', 'tt_content', $where);
 				// If the query returned no results, issue information
 			if ($GLOBALS['TYPO3_DB']->sql_num_rows($res) == 0) {
-				$searchResults = '<p>'.$GLOBALS['LANG']->getLL('search_no_results').'</p>';
+				$searchResults = '<p>' . $GLOBALS['LANG']->getLL('search_no_results') . '</p>';
 			}
 				// If some results were returned, display list of pages found
 			else {
-				$searchResults = '<p>'.$GLOBALS['LANG']->getLL('search_results_intro').'</p>';
+				$searchResults = '<p>' . $GLOBALS['LANG']->getLL('search_results_intro') . '</p>';
 				$searchResults .= $this->pObj->doc->spacer(5);
 				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 					$pageRecord = t3lib_BEfunc::getRecord('pages', $row['pid']);
-					$pageDisplay = '<a href="#" onclick="' . htmlspecialchars('top.loadEditId('.$row['pid'].')').'">';
+					$pageDisplay = '<a href="#" onclick="' . htmlspecialchars('top.loadEditId(' . $row['pid'] . ')') . '">';
 					$pageDisplay .= t3lib_iconWorks::getIconImage('pages', $pageRecord, $GLOBALS['BACK_PATH'], 'align="top"');
 					$pageDisplay .= '[' . $row['pid'] . '] ' . t3lib_BEfunc::getRecordTitle('pages', $pageRecord, TRUE);;
 					$pageDisplay .= '</a>';
-					$searchResults .= '<p>'.$pageDisplay.'</p>';
+					$searchResults .= '<p>' . $pageDisplay . '</p>';
 				}
 				$searchResults .= $this->pObj->doc->spacer(10);
 			}
@@ -303,7 +298,7 @@ class tx_webinfocontents_modfunc1 extends t3lib_extobjbase {
 			// Initialize tree object:
 		$tree = t3lib_div::makeInstance('t3lib_pageTree');
 		$tree->addField('nav_title', 1);
-		$tree->init('AND '.$GLOBALS['BE_USER']->getPagePermsClause(1));
+		$tree->init('AND ' . $GLOBALS['BE_USER']->getPagePermsClause(1));
 
 			// Creating top icon; the current page
 		$HTML = t3lib_iconWorks::getIconImage('pages', $treeStartingRecord, $GLOBALS['BACK_PATH'], 'align="top"');
